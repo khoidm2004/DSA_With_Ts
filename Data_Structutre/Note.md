@@ -76,7 +76,87 @@ console.log(kept === reversedCopy);     // false — different arrays
 
 ---
 
-## 2. Stack (LIFO)
+## 2. String
+
+**Definition:** An **immutable** sequence of characters. Index access is O(1). Any “change” creates a **new** string. In TypeScript/JavaScript, type is `string`.
+
+> Strings are not arrays, but many methods feel similar (`indexOf`, `slice`, `includes`).
+
+**Example:**
+
+```typescript
+const s = "Hello";
+s.length;        // 5
+s[0];            // "H"
+s[1];            // "e"
+
+// Strings are immutable — methods return NEW strings
+const t = s.toLowerCase(); // "hello"
+console.log(s);            // "Hello" — original unchanged
+```
+
+**Useful methods:**
+
+| Method | Description | Example | Typical time |
+|--------|-------------|---------|--------------|
+| `length` | Number of characters | `"hi".length` → `2` | O(1) |
+| `charAt(i)` / `s[i]` | Char at index | `"cat"[1]` → `"a"` | O(1) |
+| `indexOf(sub)` | First index of substring | `"hello".indexOf("ll")` → `2` | O(n·m) |
+| `lastIndexOf(sub)` | Last index of substring | `"aba".lastIndexOf("a")` → `2` | O(n·m) |
+| `includes(sub)` | Contains substring? | `"cat".includes("a")` → `true` | O(n·m) |
+| `startsWith(pre)` | Starts with prefix? | `"flower".startsWith("flow")` | O(m) |
+| `endsWith(suf)` | Ends with suffix? | `"flight".endsWith("ght")` | O(m) |
+| `slice(start, end?)` | Substring `[start, end)` | `"hello".slice(1, 4)` → `"ell"` | O(k) |
+| `substring(start, end?)` | Similar to `slice` | `"hello".substring(1, 4)` → `"ell"` | O(k) |
+| `split(sep)` | String → string array | `"a,b,c".split(",")` → `["a","b","c"]` | O(n) |
+| `join` *(on Array)* | Array → string | `["a","b"].join("-")` → `"a-b"` | O(n) |
+| `trim()` | Remove edge whitespace | `"  hi  ".trim()` → `"hi"` | O(n) |
+| `toLowerCase()` | Lowercase copy | `"Hi".toLowerCase()` → `"hi"` | O(n) |
+| `toUpperCase()` | Uppercase copy | `"Hi".toUpperCase()` → `"HI"` | O(n) |
+| `replace(a, b)` | Replace first match | `"aa".replace("a","b")` → `"ba"` | O(n) |
+| `replaceAll(a, b)` | Replace all matches | `"aa".replaceAll("a","b")` → `"bb"` | O(n) |
+| `repeat(n)` | Repeat string | `"ab".repeat(3)` → `"ababab"` | O(n·len) |
+| `padStart` / `padEnd` | Pad to length | `"5".padStart(3,"0")` → `"005"` | O(n) |
+| `concat` / `+` | Combine strings | `"a" + "b"` → `"ab"` | O(n) |
+
+```typescript
+const word = "catalogue";
+
+word.indexOf("log");       // 3
+word.includes("cat");      // true
+word.startsWith("cata");   // true
+word.endsWith("ogue");     // true
+word.slice(0, 3);          // "cat"
+word.split("");            // ["c","a","t","a","l","o","g","u","e"]
+
+// Reverse a string (strings have no .reverse())
+const reversed = word.split("").reverse().join(""); // "euogolatacs"
+// or: [...word].reverse().join("")
+
+// Common LeetCode patterns
+const chars = [..."flower"];     // char array for in-place style work
+const rebuilt = chars.join("");  // back to string
+
+// Compare / sort
+"apple" < "banana";              // true (lexicographic)
+["dog", "cat"].sort();           // ["cat", "dog"]
+```
+
+**Important notes:**
+- **Immutable:** `s[0] = "x"` does nothing useful; use `slice` + concat or a char array.
+- Prefer `slice` over `substring` (clearer with negatives: `slice(-1)` = last char).
+- Building a string with `result += ch` in a loop can be **O(n²)**; prefer `chars.push` then `join("")` or a buffer pattern.
+- `for...of` iterates code units well for typical ASCII/BMP; for full Unicode graphemes, be careful with surrogate pairs.
+
+**Usage:**
+- Text processing, parsing, validation
+- Prefix / suffix checks (`startsWith` / `endsWith`)
+- Palindrome, anagram, LCP problems
+- Convert with `split` / `join` when you need array methods (`reverse`, `sort`, `map`)
+
+---
+
+## 3. Stack (LIFO)
 
 **Definition:** Last-In, First-Out structure. Only the top element is accessible. Push and pop are O(1).
 
@@ -117,7 +197,7 @@ stack.pop(); // "b"
 
 ---
 
-## 3. Queue (FIFO)
+## 4. Queue (FIFO)
 
 **Definition:** First-In, First-Out structure. Enqueue at the back, dequeue from the front. Ideal for ordered processing.
 
@@ -158,7 +238,7 @@ queue.dequeue(); // 1
 
 ---
 
-## 4. Linked List
+## 5. Linked List
 
 **Definition:** A sequence of nodes where each node holds a value and a pointer to the next (and optionally previous) node. Insert/delete at known positions is O(1); random access is O(n).
 
@@ -215,7 +295,7 @@ list.append(3); // [1, 2, 3]
 
 ---
 
-## 5. Doubly Linked List
+## 6. Doubly Linked List
 
 **Definition:** Like a linked list, but each node has both `prev` and `next` pointers, allowing bidirectional traversal.
 
@@ -261,7 +341,7 @@ class DoublyLinkedList<T> {
 
 ---
 
-## 6. Map (Hash Map / Dictionary)
+## 7. Map (Hash Map / Dictionary)
 
 **Definition:** A collection of **key → value** pairs. Each key is unique. Lookup, insert, and delete are average **O(1)** via hashing. In TypeScript/JavaScript, use the built-in `Map<K, V>`.
 
@@ -366,7 +446,7 @@ function fib(n: number): number {
 ---
 
 
-## 7. Hash Set (`Set`)
+## 8. Hash Set (`Set`)
 
 **Definition:** Unordered collection of unique values. Average O(1) add, has, and delete.
 
@@ -391,7 +471,7 @@ console.log(ids.size);   // 1
 
 ---
 
-## 8. Tree (General / N-ary)
+## 9. Tree (General / N-ary)
 
 **Definition:** Hierarchical structure of nodes with one root; each node has zero or more children. No cycles.
 
@@ -425,7 +505,7 @@ eng.addChild(new TreeNode("Backend"));
 
 ---
 
-## 9. Binary Tree
+## 10. Binary Tree
 
 **Definition:** A tree where each node has at most two children: left and right.
 
@@ -452,7 +532,7 @@ root.left.left = new BinaryTreeNode(4);
 
 ---
 
-## 10. Binary Search Tree (BST)
+## 11. Binary Search Tree (BST)
 
 **Definition:** A binary tree where for every node: left subtree values < node value < right subtree values. Search, insert, delete average O(log n); worst O(n) if skewed.
 
@@ -517,7 +597,7 @@ bst.search(30); // true
 
 ---
 
-## 11. Heap / Priority Queue
+## 12. Heap / Priority Queue
 
 **Definition:** A complete binary tree that satisfies the heap property (min-heap: parent ≤ children; max-heap: parent ≥ children). Get-min/max is O(1); insert/extract is O(log n).
 
@@ -596,7 +676,7 @@ heap.extractMin(); // 1
 
 ---
 
-## 12. Graph
+## 13. Graph
 
 **Definition:** A set of vertices (nodes) connected by edges. Can be directed/undirected, weighted/unweighted. Represented as adjacency list or matrix.
 
@@ -656,7 +736,7 @@ g.bfs("A"); // ["A", "B", "C", "D"]
 
 ---
 
-## 13. Trie (Prefix Tree)
+## 14. Trie (Prefix Tree)
 
 **Definition:** A tree where each edge represents a character; paths from root spell strings. Optimized for prefix search and autocomplete.
 
@@ -699,24 +779,76 @@ class Trie {
     }
     return true;
   }
+
+  /** Walk to prefix, then DFS to collect every completed word under it */
+  wordsWithPrefix(prefix: string): string[] {
+    let node = this.root;
+    for (const ch of prefix) {
+      if (!node.children.has(ch)) return [];
+      node = node.children.get(ch)!;
+    }
+
+    const result: string[] = [];
+    const dfs = (curr: TrieNode, path: string) => {
+      if (curr.isEnd) result.push(path); // completed word
+      for (const [ch, child] of curr.children) {
+        dfs(child, path + ch);
+      }
+    };
+    dfs(node, prefix);
+    return result;
+  }
+
+  /** All words in the Trie (same as prefix "") */
+  getAllWords(): string[] {
+    return this.wordsWithPrefix("");
+  }
 }
 
 const trie = new Trie();
 trie.insert("cat");
+trie.insert("cats");
+trie.insert("catalogue");
 trie.insert("car");
-trie.search("cat");      // true
-trie.startsWith("ca");   // true
+
+trie.search("cat");              // true — exact word?
+trie.startsWith("cat");          // true — any word with this prefix?
+
+// Retrieve matching patterns automatically (autocomplete)
+trie.wordsWithPrefix("cat");
+// → ["cat", "cats", "catalogue"]
+
+trie.wordsWithPrefix("ca");
+// → ["cat", "cats", "catalogue", "car"]
+
+trie.wordsWithPrefix("dog");
+// → []
+
+trie.getAllWords();
+// → ["cat", "cats", "catalogue", "car"]
+```
+
+**How auto-retrieve works:**
+1. Walk down the Trie following the prefix (`c → a → t`)
+2. From that node, DFS every branch
+3. Whenever `isEnd === true`, push the built string into the result
+
+```
+prefix "cat" lands here ↓
+              t (isEnd ✓) → collect "cat"
+              ├─ s (isEnd ✓) → collect "cats"
+              └─ a→l→o→g→u→e (isEnd ✓) → collect "catalogue"
 ```
 
 **Usage:**
-- Autocomplete / typeahead
+- Autocomplete / typeahead (`wordsWithPrefix`)
 - Spell checkers
 - IP routing / dictionary lookup
 - Word games (Boggle, Scrabble)
 
 ---
 
-## 14. Deque (Double-Ended Queue)
+## 15. Deque (Double-Ended Queue)
 
 **Definition:** A queue that supports insert and remove at both ends in O(1) (with a proper implementation).
 
@@ -767,7 +899,7 @@ dq.popBack(); // 1
 
 ---
 
-## 15. Hash Table (custom / object-based)
+## 16. Hash Table (custom / object-based)
 
 **Definition:** Maps keys to values via a hash function into buckets. Collisions handled by chaining or open addressing. Average O(1) ops.
 
@@ -825,6 +957,7 @@ table.get("apple"); // 3
 | Data Structure       | Ordered? | Duplicates? | Avg Access | Avg Insert | Avg Delete | Best For                                      | TS Built-in      |
 |----------------------|----------|-------------|------------|------------|------------|-----------------------------------------------|------------------|
 | Array                | Yes      | Yes         | O(1)       | O(n)*      | O(n)*      | Indexed lists, iteration                      | `T[]`            |
+| String               | Yes      | Yes (chars) | O(1) char  | O(n)†      | O(n)†      | Text, parsing, prefix/suffix                  | `string`         |
 | Stack                | Yes      | Yes         | O(1) top   | O(1)       | O(1)       | Undo, DFS, parsing                            | via `Array`      |
 | Queue                | Yes      | Yes         | O(1) front | O(1)       | O(1)**     | BFS, scheduling                               | via `Array`      |
 | Linked List          | Yes      | Yes         | O(n)       | O(1)***    | O(1)***    | Frequent head insert/delete                   | custom           |
@@ -844,6 +977,7 @@ table.get("apple"); // 3
 \*\* Array `shift` is O(n); use a linked-list or ring buffer for true O(1) dequeue.  
 \*\*\* At a known node / head (not by value search).  
 \*\*\* JS `Map`/`Set` preserve insertion order, but are not sorted by key/value.  
+† Strings are immutable — “insert/delete” means building a new string (usually O(n)).  
 `L` = length of the string/key.
 
 ---
@@ -853,6 +987,7 @@ table.get("apple"); // 3
 | Need                              | Prefer              |
 |-----------------------------------|---------------------|
 | Fast index access                 | Array               |
+| Text / characters                 | String              |
 | Unique values only                | Set                 |
 | Key → value lookup                | Map                 |
 | Undo / reverse order              | Stack               |

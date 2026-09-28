@@ -229,30 +229,277 @@ function permutations(nums: number[]): number[][] {
 
 1. **Identify `n`** — what grows? (array length, string length, number of nodes, etc.)
 2. **Count dominant operations** — loops, recursion, nested work that depends on `n`.
-3. **Express growth** — how many times does the main work run as a function of `n`?
-4. **Simplify**
-   - Drop constants: `3n` → `O(n)`
-   - Drop lower-order terms: `n² + 5n + 10` → `O(n²)`
-   - Keep the **fastest-growing** term
+3. **Apply the rules below** — add or multiply the right way.
+4. **Simplify** — drop constants and lower-order terms; keep the dominant term.
 
-### Rules of thumb
+---
+
+### All calculation rules
+
+#### Rule 1 — Drop constants
+
+Ignore fixed multipliers.
+
+```text
+O(2n) → O(n)
+O(100) → O(1)
+O(3n² + 5) → O(n²)
+```
+
+#### Rule 2 — Drop lower-order terms
+
+Keep only the **fastest-growing** term.
+
+```text
+O(n² + n) → O(n²)
+O(n + log n) → O(n)
+O(n! + n²) → O(n!)
+```
+
+Growth order (slow → fast):
+
+```text
+O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(n³) < O(2ⁿ) < O(n!)
+```
+
+#### Rule 3 — Sequential code → ADD (then take max)
+
+If block A runs, **then** block B runs → **add** costs, then simplify to the larger one.
+
+```text
+O(A) + O(B) → O(max(A, B))
+```
+
+```typescript
+// Loop then another loop — NOT multiply
+for (let i = 0; i < n; i++) { ... } // O(n)
+for (let j = 0; j < n; j++) { ... } // O(n)
+// O(n) + O(n) = O(2n) → O(n)
+```
+
+```typescript
+for (let i = 0; i < n; i++) { ... }           // O(n)
+for (let i = 0; i < n; i++) {
+  for (let j = 0; j < n; j++) { ... }         // O(n²)
+}
+// O(n) + O(n²) → O(n²)
+```
+
+> **Do NOT multiply** just because you see two loops. Multiply only when one is **inside** the other.
+
+#### Rule 4 — Nested code → MULTIPLY
+
+If B runs **inside** A for every step of A → **multiply**.
+
+```text
+O(A) × O(B) → combined cost
+```
+
+```typescript
+for (let i = 0; i < n; i++) {        // n times
+  for (let j = 0; j < n; j++) { ... } // n times each
+}
+// O(n) × O(n) = O(n²)
+```
+
+```typescript
+for (const word of words) {          // W words
+  for (const ch of word) { ... }     // L chars each (avg)
+}
+// O(W × L) = O(total characters)
+```
+
+#### Rule 5 — Different input sizes → use different letters
+
+Don’t force everything into one `n` if sizes differ.
+
+```typescript
+for (let i = 0; i < a.length; i++) {      // A
+  for (let j = 0; j < b.length; j++) { ... } // B
+}
+// O(A × B)  — not automatically O(n²)
+```
+
+Matrix `R` rows × `C` cols → **O(R × C)**. If square → **O(N²)**.
+
+#### Rule 6 — Work that does not depend on `n` → O(1)
+
+```typescript
+arr[0];
+map.get(key);      // average
+set.has(x);        // average
+x + y;
+```
+
+`O(1)` inside a loop does **not** change the loop’s cost: still **O(n)** for one loop.
+
+#### Rule 7 — Loop pattern cheatsheet
 
 | Pattern | Complexity |
 |---------|------------|
-| No loop / fixed work | O(1) |
-| Halving each step | O(log n) |
-| One loop `0..n` | O(n) |
-| Loop + binary search / sort inside once | O(n log n) often |
-| Two nested loops over `n` | O(n²) |
+| No loop / fixed steps | O(1) |
+| Halve (or grow slowly) each step | O(log n) |
+| One loop `0..n` (`for` or `while`) | O(n) |
+| Two loops **one after another** | O(n) |
+| Two loops **nested** over `n` | O(n²) |
 | Three nested loops over `n` | O(n³) |
-| Recursion with 2 branches, depth `n` | ~O(2ⁿ) |
+| Sort once, then one loop | O(n log n) |
+| Loop + binary search each time | O(n log n) |
+
+#### Rule 8 — `while` and `while (true)`
+
+`for` and `while` are the same for Big O — count **how many times the body runs**, not the keyword.
+
+**A. `while (condition)` — same as a `for` loop**
+
+Ask: how does the condition move toward false as `n` grows?
+
+```typescript
+// O(n) — i goes 0 → n
+let i = 0;
+while (i < n) {
+  i++;
+}
+
+// O(log n) — n halves each time (binary search style)
+let lo = 0, hi = n - 1;
+while (lo <= hi) {
+  const mid = Math.floor((lo + hi) / 2);
+  if (arr[mid] === target) break;
+  if (arr[mid] < target) lo = mid + 1;
+  else hi = mid - 1;
+}
+
+// O(n) — shrink from both ends (two pointers)
+let L = 0, R = n - 1;
+while (L < R) {
+  L++;
+  R--; // still ~ n/2 iterations → O(n)
+}
+```
+
+| How the loop advances | Complexity |
+|-----------------------|------------|
+| `i++` until `n` | O(n) |
+| `n = n / 2` each time | O(log n) |
+| Nested `while` over `n` | O(n²) |
+| `while` then another `while` | ADD → usually O(n) |
+
+**B. `while (true)` — infinite until `break`**
+
+The condition is always true, so Big O comes from **when you `break` / `return`** (worst case).
+
+```typescript
+// Still O(n) — breaks after at most n steps
+let i = 0;
+while (true) {
+  if (i >= n) break;
+  i++;
+}
+
+// O(log n) — halves until done
+let x = n;
+while (true) {
+  if (x <= 1) break;
+  x = Math.floor(x / 2);
+}
+
+// Dangerous: no clear exit tied to n → may be infinite (not a valid algorithm bound)
+while (true) {
+  // missing break → does not terminate
+}
+```
+
+**How to analyze `while (true)`:**
+1. Find every `break` / `return`
+2. Worst case: max iterations before exit
+3. Express that as a function of `n` → that is your O(...)
+
+```typescript
+// Example: process queue until empty — O(V + E) for a graph BFS, not "infinite"
+while (true) {
+  if (queue.length === 0) break;
+  const node = queue.shift()!;
+  // visit neighbors...
+}
+```
+
+> `while (true)` is **not** automatically infinite complexity. It is O(whatever bound your exit condition gives). If there is no bound, the algorithm may not terminate.
+
+#### Rule 9 — Built-in / library costs count
+
+Include the cost of methods you call:
+
+| Call | Typical cost |
+|------|----------------|
+| `arr[i]`, `map.get`, `set.has` | O(1) avg |
+| `arr.push` / `pop` | O(1) amortized |
+| `arr.shift` / `unshift` | O(n) |
+| `arr.includes` / `indexOf` | O(n) |
+| `arr.slice` / spread `[...arr]` | O(n) |
+| `arr.sort` | O(n log n) |
+| `arr.reverse` | O(n) |
+
+```typescript
+for (let i = 0; i < n; i++) {
+  if (arr.includes(x)) { ... } // O(n) each iteration
+}
+// O(n) × O(n) = O(n²)
+```
+
+#### Rule 10 — Recursion = (# of calls) × (work per call)
+
+| Recursion shape | Complexity |
+|-----------------|------------|
+| 1 call, depth `n`, O(1) work | O(n) |
+| 1 call, halve `n`, O(1) work | O(log n) |
+| 2 calls per level, depth `n` | O(2ⁿ) |
+| Divide into 2 halves + O(n) merge (merge sort) | O(n log n) |
 | All permutations | O(n!) |
 
-### Combining parts
+```typescript
+function countdown(n: number): void {
+  if (n === 0) return;
+  countdown(n - 1); // O(n)
+}
 
-- **Sequential** (A then B): take the **max** → `O(n) + O(n²) = O(n²)`
-- **Nested** (B inside A): **multiply** → `O(n) * O(n) = O(n²)`
-- **Independent of n**: ignore → `O(1)` work inside a loop still leaves the loop’s cost
+function f(n: number): void {
+  if (n === 0) return;
+  f(n - 1);
+  f(n - 1); // O(2ⁿ)
+}
+
+function halve(n: number): void {
+  if (n <= 1) return;
+  halve(Math.floor(n / 2)); // O(log n)
+}
+```
+
+**Master theorem (intuition):** `a` subproblems of size `n/b`, plus `O(nᵈ)` combine work → compare `log_b a` with `d` (merge sort: a=2, b=2, d=1 → O(n log n)).
+
+#### Rule 11 — Big O usually means worst case
+
+Early `return` / `break` may make **best** case fast, but Big O is usually **worst** case unless stated otherwise.
+
+```typescript
+// May return on first hit → best O(1)
+// Still worst case O(n²)
+```
+
+#### Rule 12 — Space is separate
+
+Analyze **extra memory** with the same add/multiply ideas (arrays, maps, recursion stack).
+
+| Pattern | Extra space |
+|---------|-------------|
+| Few variables | O(1) |
+| New array / copy of size n | O(n) |
+| HashMap / Set up to n keys | O(n) |
+| Recursion depth n | O(n) stack |
+
+---
+
+### Combining parts — examples
 
 ```typescript
 function example(arr: number[]): void {
@@ -273,32 +520,23 @@ function example(arr: number[]): void {
 // Total: O(1) + O(n) + O(n²) → O(n²)
 ```
 
-### Recursion
+### Decision: add or multiply?
 
-Ask: **how many calls?** and **work per call?**
+```text
+Code A
+Code B          →  ADD   →  O(A) + O(B)  → keep max
 
-```typescript
-// Depth n, 1 call per level → O(n)
-function countdown(n: number): void {
-  if (n === 0) return;
-  countdown(n - 1);
-}
-
-// Depth n, 2 calls per level → O(2ⁿ)
-function f(n: number): void {
-  if (n === 0) return;
-  f(n - 1);
-  f(n - 1);
-}
-
-// Divide in half each time → O(log n) calls (if O(1) work each)
-function halve(n: number): void {
-  if (n <= 1) return;
-  halve(Math.floor(n / 2));
+for (...) {
+  Code B        →  MULTIPLY  →  O(A) × O(B)
 }
 ```
 
-**Master theorem (intuition):** divide into `a` subproblems of size `n/b`, plus `O(nᵈ)` merge work → compare `log_b a` with `d` to get O(n log n), O(nᵈ), etc. (e.g. merge sort: a=2, b=2, d=1 → O(n log n)).
+| Situation | Do this |
+|-----------|---------|
+| Loop then another loop | **Add** → usually O(n) |
+| Loop inside loop | **Multiply** → usually O(n²) |
+| Several sequential blocks | **Add**, keep dominant |
+| Helper called inside a loop | **Multiply** loop × helper cost |
 
 ---
 
@@ -424,16 +662,18 @@ Always define what `n` (or `R`, `C`, `V`, `E`) is.
 
 When analyzing code:
 
-1. What is **`n`**?
-2. Are there **loops**? Nested? How deep?
-3. Is there **recursion**? Branching factor × depth?
-4. Any **library** calls? (`sort` ≈ O(n log n), `includes` on array ≈ O(n))
-5. **Simplify** → keep dominant term → write **O(...)**
-6. Separately note **space** if needed
+1. What is **`n`**? (or `A`, `B`, `R`, `C`, `V`, `E`…)
+2. Loops: **one after another → add**; **nested → multiply**
+3. Recursion? (# calls) × (work per call)
+4. Library calls? (`sort` ≈ O(n log n), `includes` ≈ O(n))
+5. Simplify: drop constants + lower terms → **O(...)**
+6. Note **space** separately if needed
 
 ```text
-loops nested over n     → multiply
-code after code         → take max
-halve n each time       → log n
-fixed work              → 1
+Rule 3: sequential loops     → ADD  (then keep max)
+Rule 4: nested loops         → MULTIPLY
+Rule 8: while / while(true)  → count iterations until exit (same as for)
+Rule 1–2: simplify           → drop constants & smaller terms
+halve n each time            → log n
+fixed work                   → O(1)
 ```
