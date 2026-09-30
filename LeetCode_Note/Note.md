@@ -50,3 +50,6 @@ function longestCommonPrefix(strs: string[]): string {
 }
 ```
 - Solution 2: Take first word as prefix then trim tll indexOf === 0 O(m*n)
+
+## 20. Valid Parenthesis
+- Solution 1: Stack insert open parenthesis and compare the rest using map O(n)

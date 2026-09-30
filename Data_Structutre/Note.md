@@ -12,67 +12,70 @@ A practical reference: definition, TypeScript example, and when to use each stru
 
 ```typescript
 const nums: number[] = [10, 20, 30];
-nums.push(40);           // append
-nums.unshift(5);         // prepend
-const first = nums[0];   // random access
-nums.splice(1, 1);       // remove at index 1
 
-// Retrieve index of an element
+// Access
+nums[0];                         // 10
+nums.length;                     // 3
+
+// Ends — add / remove
+nums.push(40);                   // [10, 20, 30, 40]  add back   O(1)
+nums.pop();                      // 40 → [10, 20, 30] remove back O(1)
+nums.unshift(5);                 // [5, 10, 20, 30]   add front  O(n)
+nums.shift();                    // 5  → [10, 20, 30] remove front O(n)
+
+// Middle
+nums.splice(1, 1);               // remove 1 item at index 1
+
+// Find index
 const arr = [10, 20, 30, 20];
-arr.indexOf(20);              // 1  — first match (or -1 if not found)
-arr.lastIndexOf(20);          // 3  — last match
-arr.findIndex(n => n > 15);   // 1  — first index matching a condition
-arr.findLastIndex(n => n > 15); // 3 — last index matching a condition
+arr.indexOf(20);                 // 1
+arr.lastIndexOf(20);             // 3
+arr.findIndex(n => n > 15);      // 1
+arr.findLastIndex(n => n > 15);  // 3
 
-// Reverse an array
-const items = [1, 2, 3, 4];
-items.reverse();              // [4, 3, 2, 1] — mutates original in place
-const copy = [1, 2, 3, 4];
-const reversed = copy.toReversed(); // [4, 3, 2, 1] — new array, original unchanged
-const also = [...copy].reverse();   // classic non-mutating approach
+// Reverse
+const a = [1, 2, 3];
+a.reverse();                     // [3, 2, 1] — mutates same array
+const b = [1, 2, 3];
+b.toReversed();                  // [3, 2, 1] — new array
+[...b].reverse();                // [3, 2, 1] — copy then reverse
+
+// Stack (fast) vs queue-on-array (shift is slow)
+const stack = [1, 2, 3];
+stack.push(4);
+stack.pop();                     // LIFO — O(1)
+
+const queue = [1, 2, 3];
+queue.push(4);                   // enqueue
+queue.shift();                   // dequeue — works, but O(n)
 ```
 
-**Key methods to get an index:**
-| Method | When to use | Returns |
-|--------|-------------|---------|
-| `indexOf(value)` | Exact value, first occurrence | Index or `-1` |
-| `lastIndexOf(value)` | Exact value, last occurrence | Index or `-1` |
-| `findIndex(fn)` | First element matching a predicate | Index or `-1` |
-| `findLastIndex(fn)` | Last element matching a predicate | Index or `-1` |
+**Useful methods:**
 
-**Reverse an array:**
-| Method | Mutates original? | Returns |
-|--------|-------------------|---------|
-| `reverse()` | Yes (in place) | Same array, reversed |
-| `toReversed()` | No | New reversed array |
-| `[...arr].reverse()` | No (copy first) | New reversed array |
+| Method | What it does | Mutates? | Returns | Time |
+|--------|--------------|----------|---------|------|
+| `arr[i]` / `length` | Access / size | No | Value / number | O(1) |
+| `push(item)` | Add to **back** | Yes | New length | O(1) |
+| `pop()` | Remove from **back** | Yes | Removed item | O(1) |
+| `unshift(item)` | Add to **front** | Yes | New length | O(n) |
+| `shift()` | Remove from **front** | Yes | Removed item | O(n) |
+| `splice(i, n)` | Insert/remove at index | Yes | Removed items | O(n) |
+| `indexOf(value)` | First index of value | No | Index or `-1` | O(n) |
+| `lastIndexOf(value)` | Last index of value | No | Index or `-1` | O(n) |
+| `findIndex(fn)` | First index matching `fn` | No | Index or `-1` | O(n) |
+| `findLastIndex(fn)` | Last index matching `fn` | No | Index or `-1` | O(n) |
+| `reverse()` | Reverse in place | Yes | Same array | O(n) |
+| `toReversed()` | Reverse copy | No | New array | O(n) |
 
-> Prefer `toReversed()` (or spread + `reverse()`) when you need to keep the original order.
-
-> **Important:** `reverse()` changes the **order of elements**, but it still points to the **same array** (same reference). So it is still “equal” to the original variable — content order changed, identity did not.
-
-```typescript
-const original = [1, 2, 3];
-const result = original.reverse();
-
-console.log(original);          // [3, 2, 1] — content reversed
-console.log(result);            // [3, 2, 1]
-console.log(original === result); // true — same array in memory
-console.log(Object.is(original, result)); // true
-
-// To keep the original AND get a reversed copy:
-const kept = [1, 2, 3];
-const reversedCopy = kept.toReversed(); // or [...kept].reverse()
-console.log(kept);                      // [1, 2, 3] — unchanged
-console.log(kept === reversedCopy);     // false — different arrays
-```
+**Notes:**
+- Prefer `pop` over `shift` when possible — `shift`/`unshift` reindex every element (**O(n)**).
+- `reverse()` changes order but keeps the **same reference** (`original === result` is `true`). Use `toReversed()` or `[...arr].reverse()` to keep the original.
+- `push`/`pop` → stack (LIFO). `push`/`shift` → simple queue (FIFO, but dequeue is O(n)).
 
 **Usage:**
-- Lists of items you need to iterate or index into
-- Stacks/queues (via `push`/`pop` or `shift`/`unshift`)
-- Dynamic collections where order matters
-- Finding positions with `indexOf` / `findIndex`
-- Reversing order with `reverse()` / `toReversed()`
+- Indexed lists and iteration
+- Stacks (`push`/`pop`) and simple queues (`push`/`shift`)
+- Finding positions, reversing order, dynamic collections
 
 ---
 
